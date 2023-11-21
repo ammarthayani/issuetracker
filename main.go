@@ -11,23 +11,31 @@ import (
 	"gorm.io/gorm"
 )
 
-func main() {
+type API struct {
+	r  *mux.Router
+	db *gorm.DB
+}
+
+func createApi() *API {
 	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
 	if err != nil {
 		fmt.Println("failed to connect to db")
 	}
-
-	db.AutoMigrate(&models.Issue{})
-
-	testIssue := models.Issue{Name: "test"}
-
-	db.Create(&testIssue)
-
-	// TODO: Create API Object to store mux router
 	r := mux.NewRouter()
-	r.HandleFunc("/", HomeController)
+	return &API{
+		r:  r,
+		db: db,
+	}
+}
 
-	http.Handle("/", r)
+func main() {
+	api := createApi()
+
+	api.db.AutoMigrate(&models.Issue{})
+
+	api.r.HandleFunc("/", HomeController)
+
+	http.Handle("/", api.r)
 	http.ListenAndServe(":8000", nil)
 }
 
