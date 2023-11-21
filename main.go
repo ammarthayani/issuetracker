@@ -28,6 +28,15 @@ func createApi() *API {
 	}
 }
 
+func (api *API) getAllIssues(w http.ResponseWriter, r *http.Request) {
+	issues := []models.Issue{}
+
+	api.db.Find(&issues)
+
+	tmpl, _ := template.ParseFiles("views/home/index.html")
+	tmpl.Execute(w, issues)
+}
+
 func main() {
 	api := createApi()
 
@@ -36,6 +45,7 @@ func main() {
 	api.r.HandleFunc("/", HomeController)
 
 	http.Handle("/", api.r)
+	http.HandleFunc("/issues/", api.getAllIssues)
 	http.ListenAndServe(":8000", nil)
 }
 
